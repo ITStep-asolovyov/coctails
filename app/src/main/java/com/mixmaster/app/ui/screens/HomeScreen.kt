@@ -213,9 +213,9 @@ private fun SectionCard(title: String, content: @Composable ColumnScope.() -> Un
     }
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun WrapRow(content: @Composable () -> Unit) {
-    // Simple flow layout using FlowRow from accompanist not available, using wrapping via Column+Row
     androidx.compose.foundation.layout.FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
