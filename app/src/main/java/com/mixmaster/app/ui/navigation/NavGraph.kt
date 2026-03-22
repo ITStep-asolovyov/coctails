@@ -51,9 +51,9 @@ import com.mixmaster.app.ui.theme.TextMuted
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
-    object Results : Screen("results?query={query}&filter={filter}") {
-        fun createRoute(query: String = "", filter: String = "") =
-            "results?query=$query&filter=$filter"
+    object Results : Screen("results?query={query}&filter={filter}&ingredient={ingredient}") {
+        fun createRoute(query: String = "", filter: String = "", ingredient: String = "") =
+            "results?query=$query&filter=$filter&ingredient=$ingredient"
     }
     object Detail : Screen("detail/{cocktailId}") {
         fun createRoute(id: String) = "detail/$id"
@@ -109,8 +109,8 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
                 composable(Screen.Home.route) {
                     HomeScreen(
                         bottomPadding = innerPadding.calculateBottomPadding(),
-                        onSearch = { query, filter ->
-                            navController.navigate(Screen.Results.createRoute(query, filter))
+                        onSearch = { query, filter, ingredient ->
+                            navController.navigate(Screen.Results.createRoute(query, filter, ingredient))
                         },
                         onNavigateToDetail = { id ->
                             navController.navigate(Screen.Detail.createRoute(id))
@@ -122,14 +122,17 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
                     route = Screen.Results.route,
                     arguments = listOf(
                         navArgument("query") { type = NavType.StringType; defaultValue = "" },
-                        navArgument("filter") { type = NavType.StringType; defaultValue = "" }
+                        navArgument("filter") { type = NavType.StringType; defaultValue = "" },
+                        navArgument("ingredient") { type = NavType.StringType; defaultValue = "" }
                     )
                 ) { backStackEntry ->
                     val query = backStackEntry.arguments?.getString("query") ?: ""
                     val filter = backStackEntry.arguments?.getString("filter") ?: ""
+                    val ingredient = backStackEntry.arguments?.getString("ingredient") ?: ""
                     ResultsScreen(
                         query = query,
                         filter = filter,
+                        ingredient = ingredient,
                         onCocktailClick = { id -> navController.navigate(Screen.Detail.createRoute(id)) },
                         onBack = { navController.popBackStack() }
                     )

@@ -14,7 +14,8 @@ data class ResultsUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val query: String = "",
-    val filter: String = ""
+    val filter: String = "",
+    val ingredient: String = ""
 )
 
 class ResultsViewModel : ViewModel() {
@@ -22,24 +23,22 @@ class ResultsViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ResultsUiState())
     val uiState: StateFlow<ResultsUiState> = _uiState.asStateFlow()
 
-    fun load(query: String, filter: String) {
-        if (_uiState.value.query == query && _uiState.value.filter == filter &&
-            (_uiState.value.items.isNotEmpty() || _uiState.value.error != null)
+    fun load(query: String, filter: String, ingredient: String) {
+        val state = _uiState.value
+        if (state.query == query && state.filter == filter && state.ingredient == ingredient &&
+            (state.items.isNotEmpty() || state.error != null)
         ) return
 
         viewModelScope.launch {
-            _uiState.value = ResultsUiState(isLoading = true, query = query, filter = filter)
+            _uiState.value = ResultsUiState(
+                isLoading = true, query = query, filter = filter, ingredient = ingredient
+            )
             val result = when {
-                query.isNotBlank() -> {
-                    repository.searchByName(query).map { items ->
-                        if (filter == "Alcoholic") items.also { _ ->
-                            // Filter is applied server-side via search; we just use all results
-                        } else items
-                    }
-                }
+                query.isNotBlank() -> repository.searchByName(query)
+                ingredient.isNotBlank() -> repository.filterByIngredient(ingredient)
                 filter == "Alcoholic" -> repository.filterByAlcohol(true)
                 filter == "Non_Alcoholic" -> repository.filterByAlcohol(false)
-                else -> repository.searchByName("")
+                else -> repository.searchByName("margarita")
             }
             result
                 .onSuccess { items ->

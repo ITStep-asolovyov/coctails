@@ -57,14 +57,15 @@ import com.mixmaster.app.ui.viewmodel.ResultsViewModel
 fun ResultsScreen(
     query: String,
     filter: String,
+    ingredient: String = "",
     onCocktailClick: (String) -> Unit,
     onBack: () -> Unit,
     viewModel: ResultsViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(query, filter) {
-        viewModel.load(query, filter)
+    LaunchedEffect(query, filter, ingredient) {
+        viewModel.load(query, filter, ingredient)
     }
 
     Column(
@@ -91,6 +92,7 @@ fun ResultsScreen(
                 Text(
                     text = when {
                         query.isNotBlank() -> "«$query»"
+                        ingredient.isNotBlank() -> ingredient
                         filter == "Alcoholic" -> "Алкогольные"
                         filter == "Non_Alcoholic" -> "Безалкогольные"
                         else -> "Все коктейли"

@@ -14,9 +14,19 @@ enum class AlcoholFilter(val displayName: String) {
     NON_ALCOHOLIC("Безалкогольные")
 }
 
+enum class FlavorFilter(val displayName: String, val ingredient: String) {
+    NONE("Любой", ""),
+    SWEET("Сладкий", "Grenadine"),
+    SOUR("Кислый", "Lemon juice"),
+    BITTER("Горький", "Bitters"),
+    REFRESHING("Освежающий", "Mint"),
+    STRONG("Крепкий", "Vodka")
+}
+
 data class HomeUiState(
     val searchQuery: String = "",
     val selectedFilter: AlcoholFilter = AlcoholFilter.ALL,
+    val selectedFlavor: FlavorFilter = FlavorFilter.NONE,
     val isLoadingRandom: Boolean = false,
     val randomCocktailId: String? = null,
     val error: String? = null
@@ -35,6 +45,10 @@ class HomeViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(selectedFilter = filter)
     }
 
+    fun setFlavor(flavor: FlavorFilter) {
+        _uiState.value = _uiState.value.copy(selectedFlavor = flavor)
+    }
+
     fun getRandomCocktail() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingRandom = true, error = null)
@@ -45,7 +59,7 @@ class HomeViewModel : ViewModel() {
                         randomCocktailId = cocktail.id
                     )
                 }
-                .onFailure { e ->
+                .onFailure {
                     _uiState.value = _uiState.value.copy(
                         isLoadingRandom = false,
                         error = "Ошибка сети. Проверьте подключение."

@@ -67,13 +67,16 @@ import com.mixmaster.app.ui.theme.SurfaceCard
 import com.mixmaster.app.ui.theme.TextMuted
 import com.mixmaster.app.ui.theme.TextPrimary
 import com.mixmaster.app.ui.theme.TextSecondary
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState as rememberHScrollState
 import com.mixmaster.app.ui.viewmodel.AlcoholFilter
+import com.mixmaster.app.ui.viewmodel.FlavorFilter
 import com.mixmaster.app.ui.viewmodel.HomeViewModel
 
 @Composable
 fun HomeScreen(
     bottomPadding: Dp = 0.dp,
-    onSearch: (query: String, filter: String) -> Unit,
+    onSearch: (query: String, filter: String, ingredient: String) -> Unit,
     onNavigateToDetail: (id: String) -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
@@ -161,12 +164,39 @@ fun HomeScreen(
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(modifier = Modifier.height(10.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .horizontalScroll(rememberHScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
                         AlcoholFilter.values().forEach { filter ->
                             GlassChip(
                                 text = filter.displayName,
                                 selected = uiState.selectedFilter == filter,
                                 onClick = { viewModel.setFilter(filter) }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Text(
+                        text = "Вкус",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = TextPrimary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier
+                            .horizontalScroll(rememberHScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        FlavorFilter.values().forEach { flavor ->
+                            GlassChip(
+                                text = flavor.displayName,
+                                selected = uiState.selectedFlavor == flavor,
+                                onClick = { viewModel.setFlavor(flavor) }
                             )
                         }
                     }
@@ -180,7 +210,8 @@ fun HomeScreen(
                                 AlcoholFilter.NON_ALCOHOLIC -> "Non_Alcoholic"
                                 AlcoholFilter.ALL -> ""
                             }
-                            onSearch(uiState.searchQuery.trim(), filterParam)
+                            val ingredientParam = uiState.selectedFlavor.ingredient
+                            onSearch(uiState.searchQuery.trim(), filterParam, ingredientParam)
                         },
                         modifier = Modifier
                             .fillMaxWidth()
