@@ -1,173 +1,267 @@
 package com.mixmaster.app.ui.screens
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.AutoMirrored
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.LocalBar
+import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.mixmaster.app.data.model.Cocktail
-import com.mixmaster.app.ui.theme.*
+import coil.compose.AsyncImage
+import com.mixmaster.app.data.model.CocktailListItem
+import com.mixmaster.app.ui.components.ShimmerListItem
+import com.mixmaster.app.ui.theme.GoldAccent
+import com.mixmaster.app.ui.theme.SurfaceCard
+import com.mixmaster.app.ui.theme.TextMuted
+import com.mixmaster.app.ui.theme.TextPrimary
+import com.mixmaster.app.ui.theme.TextSecondary
 import com.mixmaster.app.ui.viewmodel.ResultsViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResultsScreen(
-    alcohol: String,
-    flavors: String,
-    difficulty: String,
-    maxStrength: Int,
-    onCocktailClick: (Int) -> Unit,
+    query: String,
+    filter: String,
+    onCocktailClick: (String) -> Unit,
     onBack: () -> Unit,
-    vm: ResultsViewModel = viewModel()
+    viewModel: ResultsViewModel = viewModel()
 ) {
-    val results by vm.results.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(alcohol, flavors, difficulty, maxStrength) {
-        vm.load(alcohol, flavors, difficulty, maxStrength)
+    LaunchedEffect(query, filter) {
+        viewModel.load(query, filter)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Результаты (${results.size})",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = OnPrimary
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад", tint = OnPrimary)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Surface)
-            )
-        },
-        containerColor = Background
-    ) { padding ->
-        if (results.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Ничего не найдено", style = MaterialTheme.typography.headlineMedium, color = OnBackground)
-                    Text("Попробуйте изменить фильтры", style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.6f))
-                }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+    ) {
+        // Top bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(
+                    Icons.Filled.ArrowBack,
+                    contentDescription = "Назад",
+                    tint = GoldAccent,
+                    modifier = Modifier.size(24.dp)
+                )
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(results) { cocktail ->
-                    CocktailCard(cocktail = cocktail, onClick = { onCocktailClick(cocktail.id) })
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = when {
+                        query.isNotBlank() -> "«$query»"
+                        filter == "Alcoholic" -> "Алкогольные"
+                        filter == "Non_Alcoholic" -> "Безалкогольные"
+                        else -> "Все коктейли"
+                    },
+                    style = MaterialTheme.typography.titleLarge,
+                    color = TextPrimary,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (!uiState.isLoading && uiState.error == null) {
+                    Text(
+                        text = "${uiState.items.size} коктейлей",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextMuted
+                    )
                 }
             }
         }
-    }
-}
 
-@Composable
-fun CocktailCard(cocktail: Cocktail, onClick: () -> Unit) {
-    val strengthColor = when {
-        cocktail.strengthPercent == 0 -> Strength0
-        cocktail.strengthPercent <= 15 -> Strength1
-        cocktail.strengthPercent <= 25 -> Strength2
-        else -> Strength3
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = Surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            // Left accent bar
-            Box(
-                modifier = Modifier
-                    .width(6.dp)
-                    .height(100.dp)
-                    .background(
-                        brush = Brush.verticalGradient(listOf(CardGradientStart, CardGradientEnd))
-                    )
-            )
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Text(
-                    text = cocktail.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = OnSurface,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = cocktail.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = OnSurface.copy(0.7f),
-                    maxLines = 2
-                )
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+        when {
+            uiState.isLoading -> {
+                LazyColumn(
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Chip(label = cocktail.alcoholType.displayName)
-                    Chip(label = cocktail.difficulty.displayName)
-                    Box(
-                        modifier = Modifier
-                            .clip(MaterialTheme.shapes.small)
-                            .background(strengthColor.copy(0.2f))
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                    items(6) {
+                        ShimmerListItem()
+                    }
+                }
+            }
+
+            uiState.error != null -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        Text("⚠️", fontSize = 48.sp)
                         Text(
-                            text = "${cocktail.strengthPercent}%",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = strengthColor,
-                            fontWeight = FontWeight.Bold
+                            text = uiState.error!!,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = TextSecondary,
+                            modifier = Modifier.padding(horizontal = 32.dp)
                         )
                     }
                 }
             }
+
+            uiState.items.isEmpty() -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.SearchOff,
+                            contentDescription = null,
+                            tint = TextMuted,
+                            modifier = Modifier.size(64.dp)
+                        )
+                        Text(
+                            text = "Ничего не найдено",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = TextSecondary
+                        )
+                        Text(
+                            text = "Попробуйте другой запрос",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextMuted
+                        )
+                    }
+                }
+            }
+
+            else -> {
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    itemsIndexed(uiState.items) { index, item ->
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = true,
+                            enter = fadeIn(tween(300, delayMillis = index * 60)) +
+                                    slideInVertically(tween(300, delayMillis = index * 60)) { it / 2 }
+                        ) {
+                            CocktailCard(
+                                item = item,
+                                onClick = { onCocktailClick(item.id) }
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun Chip(label: String) {
+fun CocktailCard(
+    item: CocktailListItem,
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
-            .clip(MaterialTheme.shapes.small)
-            .background(SurfaceVariant)
-            .padding(horizontal = 8.dp, vertical = 2.dp)
+            .fillMaxWidth()
+            .height(220.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .clickable(onClick = onClick)
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = OnSurface.copy(0.8f)
+        // Image
+        if (item.imageUrl != null) {
+            AsyncImage(
+                model = item.imageUrl,
+                contentDescription = item.name,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(SurfaceCard),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Filled.LocalBar,
+                    contentDescription = null,
+                    tint = TextMuted,
+                    modifier = Modifier.size(64.dp)
+                )
+            }
+        }
+
+        // Gradient overlay
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color(0x66000000),
+                            Color(0xCC000000)
+                        ),
+                        startY = 80f
+                    )
+                )
         )
+
+        // Name
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            contentAlignment = Alignment.BottomStart
+        ) {
+            Text(
+                text = item.name,
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }

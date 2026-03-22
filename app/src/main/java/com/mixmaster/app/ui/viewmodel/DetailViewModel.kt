@@ -12,31 +12,45 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+sealed class DetailUiState {
+    object Loading : DetailUiState()
+    data class Success(val cocktail: Cocktail, val isFavorite: Boolean) : DetailUiState()
+    data class Error(val message: String) : DetailUiState()
+}
+
 class DetailViewModel(application: Application) : AndroidViewModel(application) {
+    private val cocktailRepository = CocktailRepository()
     private val favoriteRepository = FavoriteRepository(AppDatabase.getDatabase(application))
 
-    private val _cocktail = MutableStateFlow<Cocktail?>(null)
-    val cocktail: StateFlow<Cocktail?> = _cocktail.asStateFlow()
+    private val _uiState = MutableStateFlow<DetailUiState>(DetailUiState.Loading)
+    val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
 
-    private val _isFavorite = MutableStateFlow(false)
-    val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
+    private var currentCocktail: Cocktail? = null
 
-    fun load(id: Int) {
-        _cocktail.value = CocktailRepository.getById(id)
+    fun load(id: String) {
         viewModelScope.launch {
-            favoriteRepository.isFavorite(id).collect { fav ->
-                _isFavorite.value = fav
-            }
+            _uiState.value = DetailUiState.Loading
+            cocktailRepository.getById(id)
+                .onSuccess { cocktail ->
+                    currentCocktail = cocktail
+                    favoriteRepository.isFavorite(id).collect { isFav ->
+                        _uiState.value = DetailUiState.Success(cocktail, isFav)
+                    }
+                }
+                .onFailure {
+                    _uiState.value = DetailUiState.Error("Не удалось загрузить коктейль")
+                }
         }
     }
 
     fun toggleFavorite() {
-        val c = _cocktail.value ?: return
+        val cocktail = currentCocktail ?: return
+        val current = (_uiState.value as? DetailUiState.Success) ?: return
         viewModelScope.launch {
-            if (_isFavorite.value) {
-                favoriteRepository.removeFavorite(c.id)
+            if (current.isFavorite) {
+                favoriteRepository.removeFavorite(cocktail.id)
             } else {
-                favoriteRepository.addFavorite(c)
+                favoriteRepository.addFavorite(cocktail.id, cocktail.name, cocktail.imageUrl)
             }
         }
     }

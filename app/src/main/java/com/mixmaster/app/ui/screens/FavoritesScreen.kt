@@ -1,106 +1,186 @@
 package com.mixmaster.app.ui.screens
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.AutoMirrored
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.mixmaster.app.ui.theme.*
+import com.mixmaster.app.data.model.CocktailListItem
+import com.mixmaster.app.ui.theme.FavoriteColor
+import com.mixmaster.app.ui.theme.GoldAccent
+import com.mixmaster.app.ui.theme.SurfaceElevated
+import com.mixmaster.app.ui.theme.TextMuted
+import com.mixmaster.app.ui.theme.TextPrimary
+import com.mixmaster.app.ui.theme.TextSecondary
 import com.mixmaster.app.ui.viewmodel.FavoritesViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavoritesScreen(
-    onCocktailClick: (Int) -> Unit,
-    onBack: () -> Unit,
-    vm: FavoritesViewModel = viewModel()
+    bottomPadding: Dp = 0.dp,
+    onCocktailClick: (String) -> Unit,
+    viewModel: FavoritesViewModel = viewModel()
 ) {
-    val favorites by vm.favorites.collectAsState()
+    val favorites by viewModel.favorites.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Избранное",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = OnPrimary,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад", tint = OnPrimary)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Surface)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+    ) {
+        // Header
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+        ) {
+            Text(
+                text = "Избранное",
+                style = MaterialTheme.typography.headlineMedium,
+                color = TextPrimary,
+                fontWeight = FontWeight.Bold
             )
-        },
-        containerColor = Background
-    ) { padding ->
+            Text(
+                text = if (favorites.isEmpty()) "Нет сохранённых коктейлей"
+                else "${favorites.size} коктейлей",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextMuted
+            )
+        }
+
         if (favorites.isEmpty()) {
             Box(
                 modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .padding(bottom = bottomPadding),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        Icons.Outlined.FavoriteBorder,
                         contentDescription = null,
-                        tint = FavoriteInactive,
-                        modifier = Modifier.size(64.dp)
+                        tint = TextMuted,
+                        modifier = Modifier.size(72.dp)
                     )
                     Text(
-                        "Избранное пусто",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = OnBackground
+                        text = "Нет избранного",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = TextSecondary
                     )
                     Text(
-                        "Добавляйте коктейли на странице деталей",
+                        text = "Добавляйте коктейли,\nнажимая ❤ на экране деталей",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = OnBackground.copy(0.6f)
+                        color = TextMuted,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 }
             }
         } else {
             LazyColumn(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 8.dp,
+                    bottom = bottomPadding + 16.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(favorites, key = { it.id }) { cocktail ->
-                    Box {
-                        CocktailCard(
-                            cocktail = cocktail,
-                            onClick = { onCocktailClick(cocktail.id) }
-                        )
-                        IconButton(
-                            onClick = { vm.remove(cocktail.id) },
-                            modifier = Modifier.align(Alignment.TopEnd)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Удалить",
-                                tint = FavoriteActive
-                            )
-                        }
-                    }
+                items(favorites, key = { it.id }) { item ->
+                    FavoriteCocktailCard(
+                        item = item,
+                        onClick = { onCocktailClick(item.id) },
+                        onRemove = { viewModel.remove(item.id) }
+                    )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FavoriteCocktailCard(
+    item: CocktailListItem,
+    onClick: () -> Unit,
+    onRemove: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(220.dp)
+    ) {
+        CocktailCard(item = item, onClick = onClick)
+
+        // Favorite badge
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(12.dp)
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(FavoriteColor.copy(alpha = 0.9f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                Icons.Filled.Favorite,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+
+        // Remove button
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(12.dp)
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.6f)),
+            contentAlignment = Alignment.Center
+        ) {
+            IconButton(
+                onClick = onRemove,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    Icons.Filled.Close,
+                    contentDescription = "Убрать из избранного",
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
+                )
             }
         }
     }

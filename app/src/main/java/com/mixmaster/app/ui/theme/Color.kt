@@ -2,30 +2,43 @@ package com.mixmaster.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Primary = Color(0xFF1A237E)
-val PrimaryVariant = Color(0xFF0D47A1)
-val Secondary = Color(0xFFFF6F00)
-val SecondaryVariant = Color(0xFFE65100)
+// Background gradient: dark purple → black
+val BackgroundDeep = Color(0xFF08000F)
+val BackgroundGradientStart = Color(0xFF1A0533)
+val BackgroundGradientEnd = Color(0xFF000000)
 
-val Background = Color(0xFF0A0E1A)
-val Surface = Color(0xFF131929)
-val SurfaceVariant = Color(0xFF1E2740)
+// Purple palette
+val PurplePrimary = Color(0xFF9C27B0)
+val PurpleLight = Color(0xFFCE93D8)
+val PurpleDark = Color(0xFF4A0072)
+val PurpleContainer = Color(0xFF2D1040)
 
-val OnPrimary = Color(0xFFFFFFFF)
-val OnSecondary = Color(0xFFFFFFFF)
-val OnBackground = Color(0xFFE8EAF6)
-val OnSurface = Color(0xFFE8EAF6)
+// Gold accent
+val GoldAccent = Color(0xFFFFB800)
+val GoldLight = Color(0xFFFFD54F)
+val GoldDark = Color(0xFFCC9200)
 
-val CardGradientStart = Color(0xFF1A237E)
-val CardGradientEnd = Color(0xFF0D47A1)
+// Surface colors
+val SurfaceDark = Color(0xFF110820)
+val SurfaceCard = Color(0xFF1C1030)
+val SurfaceElevated = Color(0xFF251640)
 
-val ChipSelected = Color(0xFFFF6F00)
-val ChipUnselected = Color(0xFF1E2740)
+// Text
+val TextPrimary = Color(0xFFFFFFFF)
+val TextSecondary = Color(0xFFCCB3E0)
+val TextMuted = Color(0xFF8B6BA8)
 
-val FavoriteActive = Color(0xFFE91E63)
-val FavoriteInactive = Color(0xFF546E7A)
+// Status
+val FavoriteColor = Color(0xFFFF4081)
+val AlcoholicColor = Color(0xFFFF6B35)
+val NonAlcoholicColor = Color(0xFF4CAF50)
 
-val Strength0 = Color(0xFF43A047)
-val Strength1 = Color(0xFFFDD835)
-val Strength2 = Color(0xFFFF7043)
-val Strength3 = Color(0xFFE53935)
+// Glassmorphism chips
+val GlassBg = Color(0x1AFFFFFF)
+val GlassBorder = Color(0x33FFFFFF)
+val GlassSelected = Color(0x33FFB800)
+val GlassBorderSelected = Color(0x99FFB800)
+
+// Shimmer
+val ShimmerBase = Color(0xFF1E1030)
+val ShimmerHighlight = Color(0xFF3D2060)

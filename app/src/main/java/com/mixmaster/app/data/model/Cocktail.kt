@@ -1,38 +1,53 @@
 package com.mixmaster.app.data.model
 
+import com.mixmaster.app.data.api.DrinkDto
+import com.mixmaster.app.data.api.FilterDrinkDto
+
 data class Cocktail(
-    val id: Int,
+    val id: String,
     val name: String,
-    val description: String,
-    val alcoholType: AlcoholType,
-    val flavors: List<FlavorType>,
-    val difficulty: Difficulty,
-    val strengthPercent: Int,
-    val ingredients: List<String>,
-    val instructions: List<String>
+    val imageUrl: String?,
+    val isAlcoholic: Boolean,
+    val category: String,
+    val glass: String,
+    val instructions: String,
+    val ingredients: List<Ingredient>
 )
 
-enum class AlcoholType(val displayName: String) {
-    VODKA("Водка"),
-    RUM("Ром"),
-    GIN("Джин"),
-    TEQUILA("Текила"),
-    WHISKEY("Виски"),
-    WINE("Вино"),
-    NON_ALCOHOLIC("Безалкогольный")
+data class Ingredient(
+    val name: String,
+    val measure: String
+) {
+    val imageUrl: String
+        get() = "https://www.thecocktaildb.com/images/ingredients/${name.replace(" ", "%20")}-Small.png"
 }
 
-enum class FlavorType(val displayName: String) {
-    SWEET("Сладкий"),
-    SOUR("Кислый"),
-    BITTER("Горький"),
-    NEUTRAL("Нейтральный"),
-    REFRESHING("Освежающий"),
-    STRONG("Крепкий")
-}
+data class CocktailListItem(
+    val id: String,
+    val name: String,
+    val imageUrl: String?
+)
 
-enum class Difficulty(val displayName: String) {
-    EASY("Легко"),
-    MEDIUM("Средне"),
-    HARD("Сложно")
-}
+fun DrinkDto.toCocktail(): Cocktail = Cocktail(
+    id = id,
+    name = name,
+    imageUrl = thumb,
+    isAlcoholic = alcoholic?.lowercase()?.contains("non") == false &&
+            alcoholic.lowercase().contains("alcoholic"),
+    category = category ?: "",
+    glass = glass ?: "",
+    instructions = instructions ?: "",
+    ingredients = getIngredients().map { (n, m) -> Ingredient(n, m) }
+)
+
+fun DrinkDto.toListItem(): CocktailListItem = CocktailListItem(
+    id = id,
+    name = name,
+    imageUrl = thumb
+)
+
+fun FilterDrinkDto.toListItem(): CocktailListItem = CocktailListItem(
+    id = id,
+    name = name,
+    imageUrl = thumb
+)

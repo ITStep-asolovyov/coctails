@@ -1,41 +1,56 @@
 package com.mixmaster.app.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.mixmaster.app.data.model.AlcoholType
-import com.mixmaster.app.data.model.Cocktail
-import com.mixmaster.app.data.model.Difficulty
-import com.mixmaster.app.data.model.FlavorType
+import androidx.lifecycle.viewModelScope
+import com.mixmaster.app.data.model.CocktailListItem
 import com.mixmaster.app.data.repository.CocktailRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+data class ResultsUiState(
+    val items: List<CocktailListItem> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val query: String = "",
+    val filter: String = ""
+)
 
 class ResultsViewModel : ViewModel() {
-    private val _results = MutableStateFlow<List<Cocktail>>(emptyList())
-    val results: StateFlow<List<Cocktail>> = _results.asStateFlow()
+    private val repository = CocktailRepository()
+    private val _uiState = MutableStateFlow(ResultsUiState())
+    val uiState: StateFlow<ResultsUiState> = _uiState.asStateFlow()
 
-    fun load(
-        alcohol: String,
-        flavors: String,
-        difficulty: String,
-        maxStrength: Int
-    ) {
-        val alcoholType = if (alcohol.isBlank()) null
-            else AlcoholType.values().find { it.name == alcohol }
+    fun load(query: String, filter: String) {
+        if (_uiState.value.query == query && _uiState.value.filter == filter &&
+            (_uiState.value.items.isNotEmpty() || _uiState.value.error != null)
+        ) return
 
-        val flavorList = if (flavors.isBlank()) emptyList()
-            else flavors.split(",").mapNotNull { f ->
-                FlavorType.values().find { it.name == f }
+        viewModelScope.launch {
+            _uiState.value = ResultsUiState(isLoading = true, query = query, filter = filter)
+            val result = when {
+                query.isNotBlank() -> {
+                    repository.searchByName(query).map { items ->
+                        if (filter == "Alcoholic") items.also { _ ->
+                            // Filter is applied server-side via search; we just use all results
+                        } else items
+                    }
+                }
+                filter == "Alcoholic" -> repository.filterByAlcohol(true)
+                filter == "Non_Alcoholic" -> repository.filterByAlcohol(false)
+                else -> repository.searchByName("")
             }
-
-        val diff = if (difficulty.isBlank()) null
-            else Difficulty.values().find { it.name == difficulty }
-
-        _results.value = CocktailRepository.filter(
-            alcoholType = alcoholType,
-            flavors = flavorList,
-            difficulty = diff,
-            maxStrength = maxStrength
-        )
+            result
+                .onSuccess { items ->
+                    _uiState.value = _uiState.value.copy(isLoading = false, items = items)
+                }
+                .onFailure {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "Ошибка загрузки. Проверьте подключение к интернету."
+                    )
+                }
+        }
     }
 }

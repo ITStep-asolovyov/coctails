@@ -9,14 +9,11 @@ interface FavoriteDao {
     fun getAllFavorites(): Flow<List<FavoriteEntity>>
 
     @Query("SELECT EXISTS(SELECT 1 FROM favorites WHERE cocktailId = :id)")
-    fun isFavorite(id: Int): Flow<Boolean>
+    fun isFavorite(id: String): Flow<Boolean>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addFavorite(entity: FavoriteEntity)
 
-    @Delete
-    suspend fun removeFavorite(entity: FavoriteEntity)
-
     @Query("DELETE FROM favorites WHERE cocktailId = :id")
-    suspend fun removeFavoriteById(id: Int)
+    suspend fun removeFavoriteById(id: String)
 }
