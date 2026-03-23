@@ -88,7 +88,7 @@ fun SplashScreen(onFinished: () -> Unit) {
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "PREMIUM COCKTAILS",
+                text = "ПРЕМИУМ КОКТЕЙЛИ",
                 style = MaterialTheme.typography.labelLarge,
                 color = TextSecondary,
                 letterSpacing = 4.sp,
