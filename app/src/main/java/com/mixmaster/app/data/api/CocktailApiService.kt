@@ -1,28 +1,26 @@
 package com.mixmaster.app.data.api
 
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface CocktailApiService {
+interface ApmixApiService {
+
+    @GET("api/v1/cocktails/id/random")
+    suspend fun getRandom(): ApmixCocktailDto
+
+    @GET("api/v1/cocktails/id/{id}")
+    suspend fun getById(@Path("id") id: String): ApmixCocktailDto
+
+    @GET("api/v1/cocktails/name/{name}")
+    suspend fun getByName(@Path("name") name: String): ApmixCocktailDto
+
+    @GET("api/v1/cocktails/ingredient/{ingredient}")
+    suspend fun getByIngredient(@Path("ingredient") ingredient: String): ApmixCocktailDto
+}
+
+interface CocktailDbImageService {
 
     @GET("search.php")
-    suspend fun searchByName(@Query("s") name: String): CocktailResponse
-
-    @GET("lookup.php")
-    suspend fun getById(@Query("i") id: String): CocktailResponse
-
-    @GET("random.php")
-    suspend fun getRandom(): CocktailResponse
-
-    @GET("filter.php")
-    suspend fun filterByAlcohol(@Query("a") alcoholic: String): FilterResponse
-
-    @GET("filter.php")
-    suspend fun filterByIngredient(@Query("i") ingredient: String): FilterResponse
-
-    @GET("filter.php")
-    suspend fun filterByCategory(@Query("c") category: String): FilterResponse
-
-    @GET("list.php")
-    suspend fun getCategories(@Query("c") type: String = "list"): CategoryListResponse
+    suspend fun searchByName(@Query("s") name: String): CocktailDbSearchResponse
 }

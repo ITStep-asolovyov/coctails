@@ -379,15 +379,27 @@ private fun IngredientRow(ingredient: Ingredient) {
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AsyncImage(
-            model = ingredient.imageUrl,
-            contentDescription = ingredient.name,
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(BgSurface),
-            contentScale = ContentScale.Crop
-        )
+        if (ingredient.imageUrl != null) {
+            AsyncImage(
+                model = ingredient.imageUrl,
+                contentDescription = ingredient.name,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(BgSurface),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(BgSurface),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "🍶", fontSize = 18.sp)
+            }
+        }
         Spacer(Modifier.width(12.dp))
         Text(
             text = ingredient.displayName,

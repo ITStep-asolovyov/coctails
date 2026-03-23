@@ -7,7 +7,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    private const val BASE_URL = "https://www.thecocktaildb.com/api/json/v1/1/"
 
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(HttpLoggingInterceptor().apply {
@@ -17,12 +16,23 @@ object RetrofitClient {
         .readTimeout(15, TimeUnit.SECONDS)
         .build()
 
-    val instance: CocktailApiService by lazy {
+    /** Main cocktail data API */
+    val apmixApi: ApmixApiService by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl("https://apmix.ru/")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(CocktailApiService::class.java)
+            .create(ApmixApiService::class.java)
+    }
+
+    /** TheCocktailDB — used only for fetching cocktail images by name */
+    val imageApi: CocktailDbImageService by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://www.thecocktaildb.com/api/json/v1/1/")
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(CocktailDbImageService::class.java)
     }
 }

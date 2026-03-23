@@ -60,12 +60,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.mixmaster.app.data.model.CocktailListItem
 import com.mixmaster.app.ui.components.CocktailCard
 import com.mixmaster.app.ui.components.ShimmerAlcoholChip
 import com.mixmaster.app.ui.components.ShimmerCard
-import com.mixmaster.app.ui.components.ShimmerCategoryChip
 import com.mixmaster.app.ui.theme.BgCard
 import com.mixmaster.app.ui.theme.BgPrimary
 import com.mixmaster.app.ui.theme.BgSecondary
@@ -73,7 +71,6 @@ import com.mixmaster.app.ui.theme.DividerGold
 import com.mixmaster.app.ui.theme.GlassBg
 import com.mixmaster.app.ui.theme.GlassBgGold
 import com.mixmaster.app.ui.theme.GlassBorder
-import com.mixmaster.app.ui.theme.GlassBorderGold
 import com.mixmaster.app.ui.theme.GoldAccent
 import com.mixmaster.app.ui.theme.GoldDark
 import com.mixmaster.app.ui.theme.GoldLight
@@ -129,7 +126,7 @@ fun HomeScreen(
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )
                 Spacer(Modifier.height(12.dp))
-                if (state.isLoadingCategories) {
+                if (state.isLoadingPopular && state.popularCocktails.isEmpty()) {
                     Row(
                         modifier = Modifier
                             .horizontalScroll(rememberScrollState())
@@ -147,47 +144,8 @@ fun HomeScreen(
                         items(filters.size) { i ->
                             AlcoholCircleChip(
                                 filter = filters[i],
-                                selected = state.selectedAlcohol == filters[i] && state.selectedCategory == null,
+                                selected = state.selectedAlcohol == filters[i],
                                 onClick = { viewModel.selectAlcohol(filters[i]) }
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(28.dp))
-
-            // ── Category Chips ──────────────────────────────────────────────
-            Column {
-                SectionLabel(
-                    text = "КАТЕГОРИИ",
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-                Spacer(Modifier.height(12.dp))
-                if (state.isLoadingCategories) {
-                    Row(
-                        modifier = Modifier
-                            .horizontalScroll(rememberScrollState())
-                            .padding(horizontal = 20.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        repeat(6) { ShimmerCategoryChip() }
-                    }
-                } else {
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 20.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(state.categories.size) { i ->
-                            val cat = state.categories[i]
-                            CategoryGlassChip(
-                                text = cat,
-                                selected = state.selectedCategory == cat,
-                                onClick = {
-                                    viewModel.selectCategory(
-                                        if (state.selectedCategory == cat) null else cat
-                                    )
-                                }
                             )
                         }
                     }
@@ -454,32 +412,6 @@ private fun AlcoholCircleChip(
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
             textAlign = TextAlign.Center,
             maxLines = 1
-        )
-    }
-}
-
-// ── Category Glass Chip ──────────────────────────────────────────────────────
-
-@Composable
-private fun CategoryGlassChip(text: String, selected: Boolean, onClick: () -> Unit) {
-    val bgColor = if (selected) GlassBgGold else GlassBg
-    val borderColor = if (selected) GlassBorderGold else GlassBorder
-    val textColor = if (selected) GoldAccent else TextSecondary
-
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(bgColor)
-            .border(BorderStroke(1.dp, borderColor), RoundedCornerShape(20.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            color = textColor,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
         )
     }
 }
