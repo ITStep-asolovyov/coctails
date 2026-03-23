@@ -19,4 +19,10 @@ interface CocktailApiService {
 
     @GET("filter.php")
     suspend fun filterByIngredient(@Query("i") ingredient: String): FilterResponse
+
+    @GET("filter.php")
+    suspend fun filterByCategory(@Query("c") category: String): FilterResponse
+
+    @GET("list.php")
+    suspend fun getCategories(@Query("c") type: String = "list"): CategoryListResponse
 }

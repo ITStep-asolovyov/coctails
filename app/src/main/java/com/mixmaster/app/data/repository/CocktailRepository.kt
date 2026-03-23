@@ -5,30 +5,49 @@ import com.mixmaster.app.data.model.Cocktail
 import com.mixmaster.app.data.model.CocktailListItem
 import com.mixmaster.app.data.model.toCocktail
 import com.mixmaster.app.data.model.toListItem
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 class CocktailRepository {
     private val api = RetrofitClient.instance
 
     suspend fun searchByName(query: String): Result<List<CocktailListItem>> = runCatching {
-        val response = api.searchByName(query)
-        response.drinks?.map { it.toListItem() } ?: emptyList()
+        api.searchByName(query).drinks?.map { it.toListItem() } ?: emptyList()
     }
 
     suspend fun filterByAlcohol(alcoholic: Boolean): Result<List<CocktailListItem>> = runCatching {
         val filter = if (alcoholic) "Alcoholic" else "Non_Alcoholic"
-        val response = api.filterByAlcohol(filter)
-        response.drinks?.map { it.toListItem() } ?: emptyList()
+        api.filterByAlcohol(filter).drinks?.map { it.toListItem() } ?: emptyList()
+    }
+
+    suspend fun filterByIngredient(ingredient: String): Result<List<CocktailListItem>> = runCatching {
+        api.filterByIngredient(ingredient).drinks?.map { it.toListItem() } ?: emptyList()
+    }
+
+    suspend fun filterByCategory(category: String): Result<List<CocktailListItem>> = runCatching {
+        api.filterByCategory(category).drinks?.map { it.toListItem() } ?: emptyList()
     }
 
     suspend fun getById(id: String): Result<Cocktail> = runCatching {
-        val response = api.getById(id)
-        response.drinks?.firstOrNull()?.toCocktail()
+        api.getById(id).drinks?.firstOrNull()?.toCocktail()
             ?: error("Коктейль не найден")
     }
 
     suspend fun getRandom(): Result<Cocktail> = runCatching {
-        val response = api.getRandom()
-        response.drinks?.firstOrNull()?.toCocktail()
+        api.getRandom().drinks?.firstOrNull()?.toCocktail()
             ?: error("Не удалось загрузить коктейль")
+    }
+
+    suspend fun getCategories(): Result<List<String>> = runCatching {
+        api.getCategories().drinks?.map { it.name } ?: emptyList()
+    }
+
+    /** Load [count] random cocktails in parallel. */
+    suspend fun getPopularCocktails(count: Int = 8): List<CocktailListItem> = coroutineScope {
+        (1..count).map {
+            async { runCatching { api.getRandom().drinks?.firstOrNull()?.toListItem() }.getOrNull() }
+        }.map { it.await() }
+            .filterNotNull()
+            .distinctBy { it.id }
     }
 }

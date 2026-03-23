@@ -6,29 +6,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
-    primary = GoldAccent,
-    onPrimary = BackgroundDeep,
-    primaryContainer = PurpleContainer,
-    onPrimaryContainer = PurpleLight,
-    secondary = PurplePrimary,
-    onSecondary = TextPrimary,
-    secondaryContainer = PurpleDark,
-    onSecondaryContainer = PurpleLight,
-    background = BackgroundDeep,
-    onBackground = TextPrimary,
-    surface = SurfaceCard,
-    onSurface = TextPrimary,
-    surfaceVariant = SurfaceElevated,
-    onSurfaceVariant = TextSecondary,
-    error = Color(0xFFCF6679),
-    onError = TextPrimary
+    primary             = GoldAccent,
+    onPrimary           = TextOnGold,
+    primaryContainer    = Color(0xFF2A2010),
+    onPrimaryContainer  = GoldLight,
+    secondary           = CopperAccent,
+    onSecondary         = TextOnGold,
+    secondaryContainer  = Color(0xFF1E1408),
+    onSecondaryContainer = GoldLight,
+    background          = BgPrimary,
+    onBackground        = TextPrimary,
+    surface             = BgSurface,
+    onSurface           = TextPrimary,
+    surfaceVariant      = BgSecondary,
+    onSurfaceVariant    = TextSecondary,
+    error               = ErrorRed,
+    onError             = TextPrimary,
+    outline             = DividerGold,
+    outlineVariant      = GlassBorder
 )
 
 @Composable
 fun MixMasterTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = DarkColorScheme,
-        typography = Typography,
-        content = content
+        typography  = Typography,
+        content     = content
     )
 }

@@ -53,5 +53,6 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp.logging)
     implementation(libs.coil.compose)
+    implementation(libs.accompanist.placeholder)
     debugImplementation(libs.androidx.ui.tooling)
 }

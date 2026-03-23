@@ -16,8 +16,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -42,31 +44,32 @@ import androidx.navigation.navArgument
 import com.mixmaster.app.ui.screens.DetailScreen
 import com.mixmaster.app.ui.screens.FavoritesScreen
 import com.mixmaster.app.ui.screens.HomeScreen
-import com.mixmaster.app.ui.screens.ResultsScreen
-import com.mixmaster.app.ui.theme.BackgroundGradientEnd
-import com.mixmaster.app.ui.theme.BackgroundGradientStart
+import com.mixmaster.app.ui.screens.SearchScreen
+import com.mixmaster.app.ui.screens.SplashScreen
+import com.mixmaster.app.ui.theme.BgCard
+import com.mixmaster.app.ui.theme.BgPrimary
+import com.mixmaster.app.ui.theme.BgSecondary
 import com.mixmaster.app.ui.theme.GoldAccent
-import com.mixmaster.app.ui.theme.SurfaceCard
-import com.mixmaster.app.ui.theme.TextMuted
+import com.mixmaster.app.ui.theme.TextHint
 
 sealed class Screen(val route: String) {
-    object Home : Screen("home")
-    object Results : Screen("results?query={query}&filter={filter}&ingredient={ingredient}") {
-        fun createRoute(query: String = "", filter: String = "", ingredient: String = "") =
-            "results?query=$query&filter=$filter&ingredient=$ingredient"
-    }
-    object Detail : Screen("detail/{cocktailId}") {
+    object Splash    : Screen("splash")
+    object Home      : Screen("home")
+    object Search    : Screen("search")
+    object Favorites : Screen("favorites")
+    object Detail    : Screen("detail/{cocktailId}") {
         fun createRoute(id: String) = "detail/$id"
     }
-    object Favorites : Screen("favorites")
 }
+
+private val bottomNavRoutes = listOf(Screen.Home.route, Screen.Search.route, Screen.Favorites.route)
 
 @Composable
 fun NavGraph(navController: NavHostController = rememberNavController()) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val showBottomBar = currentRoute in listOf(Screen.Home.route, Screen.Favorites.route)
+    val showBottomBar = currentRoute in bottomNavRoutes
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -83,9 +86,16 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
                     },
+                    onSearchClick = {
+                        navController.navigate(Screen.Search.route) {
+                            popUpTo(Screen.Home.route)
+                            launchSingleTop = true
+                        }
+                    },
                     onFavoritesClick = {
                         navController.navigate(Screen.Favorites.route) {
                             popUpTo(Screen.Home.route)
+                            launchSingleTop = true
                         }
                     }
                 )
@@ -96,45 +106,48 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    Brush.verticalGradient(
-                        colors = listOf(BackgroundGradientStart, BackgroundGradientEnd)
-                    )
+                    Brush.verticalGradient(listOf(BgSecondary, BgPrimary))
                 )
         ) {
             NavHost(
                 navController = navController,
-                startDestination = Screen.Home.route,
+                startDestination = Screen.Splash.route,
                 modifier = Modifier.fillMaxSize()
             ) {
+                composable(Screen.Splash.route) {
+                    SplashScreen(
+                        onFinished = {
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(Screen.Splash.route) { inclusive = true }
+                            }
+                        }
+                    )
+                }
+
                 composable(Screen.Home.route) {
                     HomeScreen(
                         bottomPadding = innerPadding.calculateBottomPadding(),
-                        onSearch = { query, filter, ingredient ->
-                            navController.navigate(Screen.Results.createRoute(query, filter, ingredient))
-                        },
                         onNavigateToDetail = { id ->
                             navController.navigate(Screen.Detail.createRoute(id))
                         }
                     )
                 }
 
-                composable(
-                    route = Screen.Results.route,
-                    arguments = listOf(
-                        navArgument("query") { type = NavType.StringType; defaultValue = "" },
-                        navArgument("filter") { type = NavType.StringType; defaultValue = "" },
-                        navArgument("ingredient") { type = NavType.StringType; defaultValue = "" }
+                composable(Screen.Search.route) {
+                    SearchScreen(
+                        bottomPadding = innerPadding.calculateBottomPadding(),
+                        onCocktailClick = { id ->
+                            navController.navigate(Screen.Detail.createRoute(id))
+                        }
                     )
-                ) { backStackEntry ->
-                    val query = backStackEntry.arguments?.getString("query") ?: ""
-                    val filter = backStackEntry.arguments?.getString("filter") ?: ""
-                    val ingredient = backStackEntry.arguments?.getString("ingredient") ?: ""
-                    ResultsScreen(
-                        query = query,
-                        filter = filter,
-                        ingredient = ingredient,
-                        onCocktailClick = { id -> navController.navigate(Screen.Detail.createRoute(id)) },
-                        onBack = { navController.popBackStack() }
+                }
+
+                composable(Screen.Favorites.route) {
+                    FavoritesScreen(
+                        bottomPadding = innerPadding.calculateBottomPadding(),
+                        onCocktailClick = { id ->
+                            navController.navigate(Screen.Detail.createRoute(id))
+                        }
                     )
                 }
 
@@ -148,13 +161,6 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
                         onBack = { navController.popBackStack() }
                     )
                 }
-
-                composable(Screen.Favorites.route) {
-                    FavoritesScreen(
-                        bottomPadding = innerPadding.calculateBottomPadding(),
-                        onCocktailClick = { id -> navController.navigate(Screen.Detail.createRoute(id)) }
-                    )
-                }
             }
         }
     }
@@ -164,67 +170,82 @@ fun NavGraph(navController: NavHostController = rememberNavController()) {
 private fun BottomNavBar(
     currentRoute: String?,
     onHomeClick: () -> Unit,
+    onSearchClick: () -> Unit,
     onFavoritesClick: () -> Unit
 ) {
-    val isHomeSelected = currentRoute == Screen.Home.route
-    val isFavSelected = currentRoute == Screen.Favorites.route
+    val isHome = currentRoute == Screen.Home.route
+    val isSearch = currentRoute == Screen.Search.route
+    val isFav = currentRoute == Screen.Favorites.route
 
     NavigationBar(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
-        containerColor = SurfaceCard.copy(alpha = 0.97f),
+            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
+        containerColor = BgCard.copy(alpha = 0.97f),
         tonalElevation = 0.dp
     ) {
         val homeScale by animateFloatAsState(
-            targetValue = if (isHomeSelected) 1.15f else 1.0f,
-            animationSpec = tween(200),
-            label = "homeScale"
+            targetValue = if (isHome) 1.15f else 1f,
+            animationSpec = tween(200), label = "hScale"
+        )
+        val searchScale by animateFloatAsState(
+            targetValue = if (isSearch) 1.15f else 1f,
+            animationSpec = tween(200), label = "sScale"
         )
         val favScale by animateFloatAsState(
-            targetValue = if (isFavSelected) 1.15f else 1.0f,
-            animationSpec = tween(200),
-            label = "favScale"
+            targetValue = if (isFav) 1.15f else 1f,
+            animationSpec = tween(200), label = "fScale"
         )
 
         NavigationBarItem(
-            selected = isHomeSelected,
+            selected = isHome,
             onClick = onHomeClick,
             icon = {
                 Icon(
-                    imageVector = if (isHomeSelected) Icons.Filled.Home else Icons.Outlined.Home,
+                    imageVector = if (isHome) Icons.Filled.Home else Icons.Outlined.Home,
                     contentDescription = "Главная",
                     modifier = Modifier.size(26.dp).scale(homeScale)
                 )
             },
             label = { Text("Главная") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = GoldAccent,
-                selectedTextColor = GoldAccent,
-                unselectedIconColor = TextMuted,
-                unselectedTextColor = TextMuted,
-                indicatorColor = GoldAccent.copy(alpha = 0.15f)
-            )
+            colors = navItemColors()
         )
 
         NavigationBarItem(
-            selected = isFavSelected,
+            selected = isSearch,
+            onClick = onSearchClick,
+            icon = {
+                Icon(
+                    imageVector = if (isSearch) Icons.Filled.Search else Icons.Outlined.Search,
+                    contentDescription = "Поиск",
+                    modifier = Modifier.size(26.dp).scale(searchScale)
+                )
+            },
+            label = { Text("Поиск") },
+            colors = navItemColors()
+        )
+
+        NavigationBarItem(
+            selected = isFav,
             onClick = onFavoritesClick,
             icon = {
                 Icon(
-                    imageVector = if (isFavSelected) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                    imageVector = if (isFav) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                     contentDescription = "Избранное",
                     modifier = Modifier.size(26.dp).scale(favScale)
                 )
             },
             label = { Text("Избранное") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = GoldAccent,
-                selectedTextColor = GoldAccent,
-                unselectedIconColor = TextMuted,
-                unselectedTextColor = TextMuted,
-                indicatorColor = GoldAccent.copy(alpha = 0.15f)
-            )
+            colors = navItemColors()
         )
     }
 }
+
+@Composable
+private fun navItemColors() = NavigationBarItemDefaults.colors(
+    selectedIconColor = GoldAccent,
+    selectedTextColor = GoldAccent,
+    unselectedIconColor = TextHint,
+    unselectedTextColor = TextHint,
+    indicatorColor = GoldAccent.copy(alpha = 0.15f)
+)

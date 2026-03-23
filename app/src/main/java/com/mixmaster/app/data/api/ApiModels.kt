@@ -67,6 +67,14 @@ data class DrinkDto(
     }
 }
 
+data class CategoryListResponse(
+    @SerializedName("drinks") val drinks: List<CategoryDto>?
+)
+
+data class CategoryDto(
+    @SerializedName("strCategory") val name: String
+)
+
 data class FilterDrinkDto(
     @SerializedName("idDrink") val id: String,
     @SerializedName("strDrink") val name: String,

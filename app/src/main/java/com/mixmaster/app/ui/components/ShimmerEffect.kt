@@ -9,10 +9,14 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,62 +29,87 @@ import com.mixmaster.app.ui.theme.ShimmerBase
 import com.mixmaster.app.ui.theme.ShimmerHighlight
 
 @Composable
-fun shimmerBrush(): Brush {
+fun goldShimmerBrush(): Brush {
     val transition = rememberInfiniteTransition(label = "shimmer")
-    val translateAnim by transition.animateFloat(
-        initialValue = -600f,
-        targetValue = 1400f,
+    val x by transition.animateFloat(
+        initialValue = -800f,
+        targetValue  = 1600f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
+            animation   = tween(1400, easing = LinearEasing),
+            repeatMode  = RepeatMode.Restart
         ),
-        label = "shimmerTranslate"
+        label = "shimmerX"
     )
     return Brush.linearGradient(
         colors = listOf(ShimmerBase, ShimmerHighlight, ShimmerBase),
-        start = Offset(translateAnim, 0f),
-        end = Offset(translateAnim + 600f, 0f)
+        start  = Offset(x, 0f),
+        end    = Offset(x + 800f, 0f)
     )
 }
 
 @Composable
-fun ShimmerCocktailCard(modifier: Modifier = Modifier) {
-    val brush = shimmerBrush()
+fun ShimmerCard(modifier: Modifier = Modifier) {
+    val brush = goldShimmerBrush()
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(280.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .height(200.dp)
+            .clip(RoundedCornerShape(16.dp))
             .background(brush)
     )
 }
 
 @Composable
-fun ShimmerListItem(modifier: Modifier = Modifier) {
-    val brush = shimmerBrush()
-    Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
+fun ShimmerGridCard(modifier: Modifier = Modifier) {
+    val brush = goldShimmerBrush()
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(190.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(brush)
+    )
+}
+
+@Composable
+fun ShimmerAlcoholChip() {
+    val brush = goldShimmerBrush()
+    Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp)
-                .clip(RoundedCornerShape(16.dp))
+                .size(64.dp)
+                .clip(CircleShape)
                 .background(brush)
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(Modifier.height(6.dp))
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.6f)
-                .height(18.dp)
+                .width(48.dp)
+                .height(10.dp)
                 .clip(RoundedCornerShape(4.dp))
                 .background(brush)
         )
-        Spacer(modifier = Modifier.height(4.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(0.4f)
-                .height(14.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(brush)
-        )
+    }
+}
+
+@Composable
+fun ShimmerCategoryChip() {
+    val brush = goldShimmerBrush()
+    Box(
+        modifier = Modifier
+            .width(88.dp)
+            .height(32.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(brush)
+    )
+}
+
+@Composable
+fun ShimmerDetailHeader() {
+    val brush = goldShimmerBrush()
+    Column(modifier = Modifier.padding(24.dp)) {
+        Box(modifier = Modifier.fillMaxWidth(0.7f).height(32.dp).clip(RoundedCornerShape(6.dp)).background(brush))
+        Spacer(Modifier.height(8.dp))
+        Box(modifier = Modifier.fillMaxWidth(0.4f).height(16.dp).clip(RoundedCornerShape(4.dp)).background(brush))
     }
 }
