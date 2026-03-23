@@ -390,7 +390,7 @@ private fun IngredientRow(ingredient: Ingredient) {
         )
         Spacer(Modifier.width(12.dp))
         Text(
-            text = ingredient.name,
+            text = ingredient.displayName,
             style = MaterialTheme.typography.bodyLarge,
             color = TextPrimary,
             fontWeight = FontWeight.Medium,

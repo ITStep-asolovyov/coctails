@@ -16,7 +16,8 @@ data class Cocktail(
 )
 
 data class Ingredient(
-    val name: String,
+    val name: String,         // original English name — used for image URL
+    val displayName: String,  // translated name shown in UI
     val measure: String
 ) {
     val imageUrl: String
@@ -39,7 +40,7 @@ fun DrinkDto.toCocktail(): Cocktail = Cocktail(
     category = (category ?: "").translateCategory(),
     glass = (glass ?: "").translateGlass(),
     instructions = instructionsRu?.takeIf { it.isNotBlank() } ?: (instructions ?: ""),
-    ingredients = getIngredients().map { (n, m) -> Ingredient(n, m) }
+    ingredients = getIngredients().map { (n, m) -> Ingredient(n, n.translateIngredient(), m) }
 )
 
 fun DrinkDto.toListItem(): CocktailListItem = CocktailListItem(
