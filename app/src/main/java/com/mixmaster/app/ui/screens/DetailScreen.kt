@@ -239,7 +239,7 @@ private fun DetailContent(
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(
-                                text = if (cocktail.isAlcoholic) "Алкогольный" else "Безалк.",
+                                text = cocktail.alcoholicLabel,
                                 color = if (cocktail.isAlcoholic) AlcoholicColor else NonAlcoholicColor,
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.SemiBold

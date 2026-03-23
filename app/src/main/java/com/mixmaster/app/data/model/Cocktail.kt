@@ -8,6 +8,7 @@ data class Cocktail(
     val name: String,
     val imageUrl: String?,
     val isAlcoholic: Boolean,
+    val alcoholicLabel: String,
     val category: String,
     val glass: String,
     val instructions: String,
@@ -34,9 +35,10 @@ fun DrinkDto.toCocktail(): Cocktail = Cocktail(
     imageUrl = thumb,
     isAlcoholic = alcoholic?.lowercase()?.contains("non") == false &&
             alcoholic.lowercase().contains("alcoholic"),
-    category = category ?: "",
-    glass = glass ?: "",
-    instructions = instructions ?: "",
+    alcoholicLabel = (alcoholic ?: "").translateAlcoholic(),
+    category = (category ?: "").translateCategory(),
+    glass = (glass ?: "").translateGlass(),
+    instructions = instructionsRu?.takeIf { it.isNotBlank() } ?: (instructions ?: ""),
     ingredients = getIngredients().map { (n, m) -> Ingredient(n, m) }
 )
 

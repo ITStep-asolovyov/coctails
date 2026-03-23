@@ -18,6 +18,7 @@ data class DrinkDto(
     @SerializedName("strCategory") val category: String?,
     @SerializedName("strGlass") val glass: String?,
     @SerializedName("strInstructions") val instructions: String?,
+    @SerializedName("strInstructionsRU") val instructionsRu: String?,
     @SerializedName("strIngredient1") val ingredient1: String?,
     @SerializedName("strIngredient2") val ingredient2: String?,
     @SerializedName("strIngredient3") val ingredient3: String?,
